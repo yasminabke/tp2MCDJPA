@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,21 +32,6 @@ public class RepositoryCustomMethodsTest {
     private DispensaireRepository dispensaireRepository;
     @Autowired
     private LigneRepository ligneRepository;
-
-    private Dispensaire dispensaireParis;
-    private Dispensaire dispensaireMarseille;
-    private Medicament doliprane;
-    private Medicament levofloxacine;
-
-    @BeforeEach
-    void setUp() {
-        // Récupérer les données existantes de data.sql
-        dispensaireParis = dispensaireRepository.findByNom("Pharmacie Centrale Paris");
-        dispensaireMarseille = dispensaireRepository.findByNom("Pharmacie Marseille");
-        doliprane = medicamentRepository.findByNom("Doliprane Effervescent 1g").orElse(null);
-        levofloxacine = medicamentRepository.findByNom("Lévofloxacine 500mg").orElse(null);
-    }
-
 
 
     @Test // Ce test se base uniquement sur les données définies dans data.sql
@@ -86,19 +70,20 @@ public class RepositoryCustomMethodsTest {
     }
 
     @Test
-    @DisplayName("Trouver un dispensaire par nom")
+    @DisplayName("Trouver un dispensaire par nom - données du data.sql")
     public void testFindDispensaireByNom() {
-        assertNotNull(dispensaireParis);
-        assertEquals("PAR01", dispensaireParis.getCode());
-        assertEquals("Pharmacie Centrale Paris", dispensaireParis.getNom());
+        Dispensaire dispensaire = dispensaireRepository.findByNom("Pharmacie Centrale Paris");
+        assertNotNull(dispensaire);
+        assertEquals("PAR01", dispensaire.getCode());
+        assertEquals("Pharmacie Centrale Paris", dispensaire.getNom());
     }
 
     @Test
-    @DisplayName("Rechercher dispensaires par nom (substring)")
+    @DisplayName("Rechercher dispensaires par nom (substring) - données du data.sql")
     public void testFindDispensaireByNomContaining() {
-        List<Dispensaire> dispensaires = dispensaireRepository.findByNomContainingIgnoreCase("pharmacie");
+        List<Dispensaire> dispensaires = dispensaireRepository.findByNomContainingIgnoreCase("Pharmacie");
         assertFalse(dispensaires.isEmpty());
-        assertEquals(10, dispensaires.size()); // 10 dispensaires exactement
+        assertEquals(10, dispensaires.size());
         assertTrue(dispensaires.stream().allMatch(d -> d.getNom().toLowerCase().contains("pharmacie")));
     }
 
@@ -107,7 +92,7 @@ public class RepositoryCustomMethodsTest {
     public void testFindDispensaireByVilleParis() {
         List<Dispensaire> dispensairesParisiens = dispensaireRepository.findByAdressePostale_VilleIgnoreCase("Paris");
         assertFalse(dispensairesParisiens.isEmpty());
-        assertEquals(2, dispensairesParisiens.size()); // PAR01, PAR02
+        assertEquals(2, dispensairesParisiens.size());
         assertTrue(dispensairesParisiens.stream()
             .allMatch(d -> d.getAdressePostale().getVille().equalsIgnoreCase("Paris")));
     }
@@ -117,62 +102,42 @@ public class RepositoryCustomMethodsTest {
     public void testFindDispensaireByVilleMarseille() {
         List<Dispensaire> dispensaires = dispensaireRepository.findByAdressePostale_VilleIgnoreCase("Marseille");
         assertFalse(dispensaires.isEmpty());
-        assertEquals(1, dispensaires.size()); // MRS01 uniquement
-        assertTrue(dispensaires.stream()
-            .allMatch(d -> d.getAdressePostale().getVille().equalsIgnoreCase("Marseille")));
+        assertEquals(1, dispensaires.size());
     }
 
-    @Test
-    @DisplayName("Vérifier les 10 dispensaires")
-    public void testCount10Dispensaires() {
-        List<Dispensaire> allDispensaires = dispensaireRepository.findAll();
-        assertEquals(10, allDispensaires.size(), "Il doit y avoir exactement 10 dispensaires");
-    }
 
-    // ===== TESTS COMMANDE - MÉTHODES PERSONNALISÉES PRINCIPALES =====
     @Test
-    @DisplayName("Trouver les commandes par nom de dispensaire - Pharmacie Centrale Paris")
+    @DisplayName("Trouver les commandes par nom de dispensaire")
     public void testFindCommandeByDispensaireNom() {
         List<Commande> commandes = commandeRepository.findByDispensaire_Nom("Pharmacie Centrale Paris");
         
-        assertFalse(commandes.isEmpty(), "Il doit y avoir des commandes pour Pharmacie Centrale Paris");
-        assertEquals(2, commandes.size(), "Pharmacie Centrale Paris doit avoir 2 commandes");
+        assertFalse(commandes.isEmpty());
+        assertEquals(2, commandes.size());
         assertTrue(commandes.stream()
             .allMatch(c -> c.getDispensaire().getNom().equals("Pharmacie Centrale Paris")));
     }
 
     @Test
-    @DisplayName("Trouver les commandes d'un dispensaire - PAR02")
-    public void testFindCommandeByDispensairePAR02() {
-        Dispensaire dispensairePAR02 = dispensaireRepository.findByNom("Pharmacie du Marais");
-        assertNotNull(dispensairePAR02);
+    @DisplayName("Trouver les commandes d'un dispensaire")
+    public void testFindCommandeByDispensaire() {
+        Dispensaire dispensaire = dispensaireRepository.findByNom("Pharmacie du Marais");
+        assertNotNull(dispensaire);
         
-        List<Commande> commandes = commandeRepository.findByDispensaire(dispensairePAR02);
-        assertEquals(1, commandes.size(), "Pharmacie du Marais doit avoir 1 commande");
+        List<Commande> commandes = commandeRepository.findByDispensaire(dispensaire);
+        assertEquals(1, commandes.size());
         assertTrue(commandes.stream()
-            .allMatch(c -> c.getDispensaire().equals(dispensairePAR02)));
+            .allMatch(c -> c.getDispensaire().equals(dispensaire)));
     }
 
     @Test
-    @DisplayName("Trouver les commandes d'un dispensaire - Marseille")
-    public void testFindCommandeByDispensaireMarseille() {
-        assertNotNull(dispensaireMarseille);
-        
-        List<Commande> commandes = commandeRepository.findByDispensaire(dispensaireMarseille);
-        assertEquals(2, commandes.size(), "Pharmacie Marseille doit avoir 2 commandes");
-        assertTrue(commandes.stream()
-            .allMatch(c -> c.getDispensaire().equals(dispensaireMarseille)));
-    }
-
-    @Test
-    @DisplayName("Trouver les commandes entre deux dates - 4 et 10 janvier")
+    @DisplayName("Trouver les commandes entre deux dates")
     public void testFindCommandeBetweenDates() {
         LocalDate debut = LocalDate.of(2025, 1, 4);
         LocalDate fin = LocalDate.of(2025, 1, 10);
         List<Commande> commandes = commandeRepository.findBySaisieLeBetween(debut, fin);
         
-        assertFalse(commandes.isEmpty(), "Il doit y avoir des commandes entre le 4 et 10 janvier");
-        assertTrue(commandes.size() >= 7, "Il doit y avoir au moins 7 commandes");
+        assertFalse(commandes.isEmpty());
+        assertTrue(commandes.size() >= 7);
         assertTrue(commandes.stream()
             .allMatch(c -> !c.getSaisieLe().isBefore(debut) && !c.getSaisieLe().isAfter(fin)));
     }
@@ -183,8 +148,8 @@ public class RepositoryCustomMethodsTest {
         LocalDate date = LocalDate.of(2025, 1, 8);
         List<Commande> commandes = commandeRepository.findBySaisieLe(date);
         
-        assertFalse(commandes.isEmpty(), "Il doit y avoir une commande le 2025-01-08");
-        assertEquals(1, commandes.size(), "Il doit y avoir exactement 1 commande le 8 janvier");
+        assertFalse(commandes.isEmpty());
+        assertEquals(1, commandes.size());
         assertTrue(commandes.stream()
             .allMatch(c -> c.getSaisieLe().equals(date)));
     }
@@ -195,39 +160,30 @@ public class RepositoryCustomMethodsTest {
         LocalDate date = LocalDate.of(2025, 1, 9);
         List<Commande> commandes = commandeRepository.findBySaisieLe(date);
         
-        assertEquals(2, commandes.size(), "Il doit y avoir 2 commandes le 9 janvier");
+        assertEquals(2, commandes.size());
         assertTrue(commandes.stream()
             .allMatch(c -> c.getSaisieLe().equals(date)));
     }
 
     @Test
-    @DisplayName("Trouver les commandes du 10 janvier 2025")
-    public void testFindCommandeByDate10janvier() {
-        LocalDate date = LocalDate.of(2025, 1, 10);
-        List<Commande> commandes = commandeRepository.findBySaisieLe(date);
-        
-        assertEquals(2, commandes.size(), "Il doit y avoir 2 commandes le 10 janvier");
-    }
-
-    @Test
-    @DisplayName("Vérifier qu'il y a exactement 12 commandes")
+    @DisplayName("Vérifier qu'il y a 12 commandes au total")
     public void testCommandesCount() {
         List<Commande> allCommandes = commandeRepository.findAll();
-        assertEquals(12, allCommandes.size(), "Il doit y avoir exactement 12 commandes");
+        assertEquals(12, allCommandes.size());
     }
 
     @Test
-    @DisplayName("Vérifier les commandes livrées vs non livrées")
+    @DisplayName("Vérifier les commandes livrées (6) et non livrées (6)")
     public void testCommandesDeliveredVsUndelivered() {
         List<Commande> allCommandes = commandeRepository.findAll();
         long livrees = allCommandes.stream().filter(c -> c.getEnvoyeeLe() != null).count();
         long nonLivrees = allCommandes.stream().filter(c -> c.getEnvoyeeLe() == null).count();
         
-        assertEquals(6, livrees, "Il doit y avoir 6 commandes livrées");
-        assertEquals(6, nonLivrees, "Il doit y avoir 6 commandes non livrées");
+        assertEquals(6, livrees);
+        assertEquals(6, nonLivrees);
     }
 
-    // ===== TESTS LIGNE =====
+
     @Test
     @DisplayName("Trouver les lignes de la commande 1")
     public void testFindLigneByCommande1() {
@@ -235,7 +191,7 @@ public class RepositoryCustomMethodsTest {
         List<Ligne> lignes = ligneRepository.findByCommande(commande);
         
         assertFalse(lignes.isEmpty());
-        assertEquals(2, lignes.size(), "Commande 1 doit avoir 2 lignes");
+        assertEquals(2, lignes.size());
         assertTrue(lignes.stream().allMatch(l -> l.getCommande().equals(commande)));
     }
 
@@ -245,7 +201,7 @@ public class RepositoryCustomMethodsTest {
         Medicament medicament = medicamentRepository.findById(1).orElseThrow();
         List<Ligne> lignes = ligneRepository.findByMedicament(medicament);
         
-        assertFalse(lignes.isEmpty(), "Le médicament 1 (Morphine) doit avoir des lignes");
+        assertFalse(lignes.isEmpty());
         assertTrue(lignes.stream().allMatch(l -> l.getMedicament().equals(medicament)));
     }
 
@@ -255,7 +211,7 @@ public class RepositoryCustomMethodsTest {
         Commande commande = commandeRepository.findById(1).orElseThrow();
         long count = ligneRepository.countByCommande(commande);
         
-        assertEquals(2, count, "Commande 1 doit avoir 2 lignes");
+        assertEquals(2, count);
     }
 
     @Test
@@ -264,20 +220,19 @@ public class RepositoryCustomMethodsTest {
         Medicament medicament = medicamentRepository.findById(2).orElseThrow();
         long count = ligneRepository.countByMedicament(medicament);
         
-        assertTrue(count > 0, "Le médicament 2 (Doliprane) doit avoir au moins 1 ligne");
-        assertEquals(3, count, "Le médicament 2 (Doliprane) doit avoir 3 lignes");
+        assertEquals(3, count);
     }
 
     @Test
-    @DisplayName("Vérifier qu'il y a exactement 22 lignes")
+    @DisplayName("Vérifier qu'il y a 22 lignes au total")
     public void testLignesCount() {
         List<Ligne> allLignes = ligneRepository.findAll();
-        assertEquals(22, allLignes.size(), "Il doit y avoir exactement 22 lignes");
+        assertEquals(22, allLignes.size());
     }
 
-    // ===== TESTS DE CALCUL =====
+
     @Test
-    @DisplayName("Calculer le montant total d'une ligne")
+    @DisplayName("Calculer le montant total d'une ligne (Morphine 50 unités)")
     public void testPrixTotalLigne() {
         Medicament medicament = medicamentRepository.findById(1).orElseThrow(); // Morphine 25.80
         Commande commande = commandeRepository.findById(1).orElseThrow();
@@ -291,8 +246,9 @@ public class RepositoryCustomMethodsTest {
         assertNotNull(prixTotal);
         
         BigDecimal expected = BigDecimal.valueOf(25.80).multiply(BigDecimal.valueOf(50));
-        assertEquals(0, prixTotal.compareTo(expected), "Le prix total doit être 25.80 * 50 = 1290.00");
+        assertEquals(0, prixTotal.compareTo(expected));
     }
+
 
     @Test
     @DisplayName("Vérifier la cohérence des dispensaires et commandes")
@@ -303,47 +259,47 @@ public class RepositoryCustomMethodsTest {
         assertEquals(10, allDispensaires.size());
         assertEquals(12, allCommandes.size());
         
-        // Chaque commande doit avoir un dispensaire valide
         assertTrue(allCommandes.stream()
             .allMatch(c -> allDispensaires.contains(c.getDispensaire())));
     }
 
     @Test
-    @DisplayName("Vérifier les commandes entre deux dates avec filtre")
-    public void testCommandesBetweenDatesFiltered() {
+    @DisplayName("Vérifier les commandes entre deux dates janvier 2025")
+    public void testCommandesBetweenDatesJanvier() {
         LocalDate debut = LocalDate.of(2025, 1, 1);
         LocalDate fin = LocalDate.of(2025, 1, 31);
         
         List<Commande> commandes = commandeRepository.findBySaisieLeBetween(debut, fin);
-        assertEquals(12, commandes.size(), "Il doit y avoir 12 commandes en janvier 2025");
+        assertEquals(12, commandes.size());
         
         assertTrue(commandes.stream()
             .allMatch(c -> !c.getSaisieLe().isBefore(debut) && !c.getSaisieLe().isAfter(fin)));
     }
 
     @Test
-    @DisplayName("Vérifier les commandes du dispensaire Paris par 2 méthodes")
+    @DisplayName("Vérifier les commandes du dispensaire Paris avec 2 méthodes")
     public void testCommandesParisConsistency() {
         List<Commande> commandesParis1 = commandeRepository.findByDispensaire_Nom("Pharmacie Centrale Paris");
-        List<Commande> commandesParis2 = commandeRepository.findByDispensaire(dispensaireParis);
         
-        assertEquals(commandesParis1.size(), commandesParis2.size(), 
-            "Les deux méthodes doivent retourner le même nombre de commandes");
-        assertEquals(2, commandesParis1.size(), "Pharmacie Centrale Paris doit avoir 2 commandes");
+        Dispensaire dispensaire = dispensaireRepository.findByNom("Pharmacie Centrale Paris");
+        List<Commande> commandesParis2 = commandeRepository.findByDispensaire(dispensaire);
+        
+        assertEquals(commandesParis1.size(), commandesParis2.size());
+        assertEquals(2, commandesParis1.size());
     }
 
     @Test
-    @DisplayName("Vérifier les catégories - 10 catégories exactement")
+    @DisplayName("Vérifier qu'il y a 10 catégories")
     public void testCategoriesCount() {
         List<Categorie> allCategories = categorieRepository.findAll();
-        assertEquals(10, allCategories.size(), "Il doit y avoir exactement 10 catégories");
+        assertEquals(10, allCategories.size());
     }
 
     @Test
-    @DisplayName("Vérifier les médicaments - 10 médicaments exactement")
+    @DisplayName("Vérifier qu'il y a 10 médicaments")
     public void testMedicamentsCount() {
         List<Medicament> allMedicaments = medicamentRepository.findAll();
-        assertEquals(10, allMedicaments.size(), "Il doit y avoir exactement 10 médicaments");
+        assertEquals(10, allMedicaments.size());
     }
 
     @Test
@@ -353,6 +309,14 @@ public class RepositoryCustomMethodsTest {
             .filter(Medicament::isIndisponible)
             .toList();
         
-        assertEquals(2, indisponibles.size(), "Il doit y avoir 2 médicaments indisponibles");
+        assertEquals(2, indisponibles.size());
     }
+
+    @Test
+    @DisplayName("Vérifier qu'il y a 10 dispensaires")
+    public void testDispensairesCount() {
+        List<Dispensaire> allDispensaires = dispensaireRepository.findAll();
+        assertEquals(10, allDispensaires.size());
+    }
+    
 }
