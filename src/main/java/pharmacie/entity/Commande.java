@@ -53,7 +53,7 @@ public class Commande {
     private BigDecimal remise;
 
     @ToString.Exclude
-    @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "commande")
+    @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "commande", orphanRemoval=true)
     private List<Ligne> lignes = new LinkedList<>();
 
     @NonNull

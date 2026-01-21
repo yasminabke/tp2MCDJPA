@@ -62,8 +62,8 @@ INSERT INTO MEDICAMENT (NOM, CATEGORIE_CODE, QUANTITE_PAR_UNITE, PRIX_UNITAIRE, 
 ('Salbutamol 100mcg', 10, 'Aérosol de 200 doses', 15.50, 85, 0, 10, false, 'https://images.unsplash.com/photo-1550572017-edd951aa8f72?w=400');
 
 -- ===== INSERTION DES DISPENSAIRES =====
--- Structure: CODE, NOM, CONTACT, FONCTION, TELEPHONE, FAX, ADRESSE, VILLE, REGION, CODE_POSTAL, PAYS
-INSERT INTO DISPENSAIRE (code, nom, contact, fonction, telephone, fax, adresse, ville, region, code_postal, pays) VALUES
+-- Structure: CODE, NOM, CONTACT, FONCTION, TELEPHONE, FAX, RUE, VILLE, REGION, CODE_POSTAL, PAYS
+INSERT INTO DISPENSAIRE (code, nom, contact, fonction, telephone, fax, rue, ville, region, code_postal, pays) VALUES
 ('PAR01', 'Pharmacie Centrale Paris', 'contact@pharma-paris.fr', 'Directeur', '0142345678', '0142345679', '42 Rue de Rivoli', 'Paris', 'Île-de-France', '75004', 'France'),
 ('PAR02', 'Pharmacie du Marais', 'marais@pharma.fr', 'Gérant', '0142987654', '0142987655', '15 Rue des Rosiers', 'Paris', 'Île-de-France', '75004', 'France'),
 ('MRS01', 'Pharmacie Marseille', 'marseille@pharma.fr', 'Directeur', '0491567890', '0491567891', '123 Boulevard Michelet', 'Marseille', 'PACA', '13008', 'France'),
@@ -76,8 +76,8 @@ INSERT INTO DISPENSAIRE (code, nom, contact, fonction, telephone, fax, adresse, 
 ('BES01', 'Pharmacie Besançon', 'besancon@pharma.fr', 'Responsable', '0381234567', '0381234568', '77 Rue Battant', 'Besançon', 'Bourgogne-Franche-Comté', '25000', 'France');
 
 -- ===== INSERTION DES COMMANDES =====
--- Structure: NUMERO (auto), DATE_COMMANDE, ENVOYEELE, PORT, REMISE, DISPENSAIRE_CODE
-INSERT INTO COMMANDE (date_commande, envoyeele, port, remise, dispensaire_code) VALUES
+-- Structure: NUMERO (auto), SAISIE_LE, ENVOYEE_LE, PORT, REMISE, DISPENSAIRE_CODE
+INSERT INTO COMMANDE (saisie_le, envoyee_le, port, remise, dispensaire_code) VALUES
 ('2025-01-08', '2025-01-10', 15.00, 5.00, 'PAR01'),
 ('2025-01-09', NULL, 12.00, 2.00, 'PAR02'),
 ('2025-01-10', NULL, 18.00, 3.00, 'MRS01'),

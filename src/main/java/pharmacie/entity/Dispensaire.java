@@ -1,11 +1,22 @@
 package pharmacie.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.util.LinkedList;
 import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter @Setter @NoArgsConstructor @RequiredArgsConstructor @ToString
@@ -51,7 +62,7 @@ public class Dispensaire {
     private AdressePostale adressePostale;
 
     @ToString.Exclude
-    @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "dispensaire")
+    @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "dispensaire", orphanRemoval=true)
     private List<Commande> commandes = new LinkedList<>();
 
 }

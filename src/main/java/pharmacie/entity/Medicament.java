@@ -1,10 +1,24 @@
 package pharmacie.entity;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.PositiveOrZero;
-import lombok.*;
-
 import java.math.BigDecimal;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter @Setter @NoArgsConstructor @RequiredArgsConstructor @ToString
@@ -59,10 +73,11 @@ public class Medicament {
 	@Column(length = 500)
 	private String imageURL;
 
-	@ManyToOne(optional = false)
+	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@NonNull
 	@ToString.Exclude
-
+	@NotNull(message="La catégorie est obligatoire")
+	@JoinColumn(name="categorie_code", nullable=false)
 	private Categorie categorie ;
 
 }

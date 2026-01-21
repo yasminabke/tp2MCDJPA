@@ -9,7 +9,5 @@ import pharmacie.entity.Dispensaire;
 public interface DispensaireRepository extends JpaRepository<Dispensaire, String>{
     Dispensaire findByNom(String nom);
 
-    List<Dispensaire> findByNomContainingIgnoreCase(String substring);
-
-    List<Dispensaire> findByAdressePostale_VilleIgnoreCase(String ville);
+    List<Dispensaire> findByAdressePostale_RegionIgnoreCase(String region);
 }

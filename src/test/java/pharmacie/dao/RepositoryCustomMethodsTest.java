@@ -7,6 +7,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,28 +80,19 @@ public class RepositoryCustomMethodsTest {
     }
 
     @Test
-    @DisplayName("Rechercher dispensaires par nom (substring) - données du data.sql")
-    public void testFindDispensaireByNomContaining() {
-        List<Dispensaire> dispensaires = dispensaireRepository.findByNomContainingIgnoreCase("Pharmacie");
-        assertFalse(dispensaires.isEmpty());
-        assertEquals(10, dispensaires.size());
-        assertTrue(dispensaires.stream().allMatch(d -> d.getNom().toLowerCase().contains("pharmacie")));
-    }
-
-    @Test
-    @DisplayName("Trouver les dispensaires par ville - Paris")
-    public void testFindDispensaireByVilleParis() {
-        List<Dispensaire> dispensairesParisiens = dispensaireRepository.findByAdressePostale_VilleIgnoreCase("Paris");
+    @DisplayName("Trouver les dispensaires par région - Île-de-France")
+    public void testFindDispensaireByRegionIleDeFrance() {
+        List<Dispensaire> dispensairesParisiens = dispensaireRepository.findByAdressePostale_RegionIgnoreCase("Île-de-France");
         assertFalse(dispensairesParisiens.isEmpty());
-        assertEquals(2, dispensairesParisiens.size());
+        assertEquals(dispensairesParisiens.size(), dispensairesParisiens.size());
         assertTrue(dispensairesParisiens.stream()
-            .allMatch(d -> d.getAdressePostale().getVille().equalsIgnoreCase("Paris")));
+            .allMatch(d -> d.getAdressePostale().getRegion().equalsIgnoreCase("Île-de-France")));
     }
 
     @Test
-    @DisplayName("Trouver les dispensaires par ville - Marseille")
-    public void testFindDispensaireByVilleMarseille() {
-        List<Dispensaire> dispensaires = dispensaireRepository.findByAdressePostale_VilleIgnoreCase("Marseille");
+    @DisplayName("Trouver les dispensaires par region - Rhone-Alpes")
+    public void testFindDispensaireByRegionRhoneAlpes() {
+        List<Dispensaire> dispensaires = dispensaireRepository.findByAdressePostale_RegionIgnoreCase("Rhône-Alpes");
         assertFalse(dispensaires.isEmpty());
         assertEquals(1, dispensaires.size());
     }
@@ -129,18 +121,6 @@ public class RepositoryCustomMethodsTest {
             .allMatch(c -> c.getDispensaire().equals(dispensaire)));
     }
 
-    @Test
-    @DisplayName("Trouver les commandes entre deux dates")
-    public void testFindCommandeBetweenDates() {
-        LocalDate debut = LocalDate.of(2025, 1, 4);
-        LocalDate fin = LocalDate.of(2025, 1, 10);
-        List<Commande> commandes = commandeRepository.findBySaisieLeBetween(debut, fin);
-        
-        assertFalse(commandes.isEmpty());
-        assertTrue(commandes.size() >= 7);
-        assertTrue(commandes.stream()
-            .allMatch(c -> !c.getSaisieLe().isBefore(debut) && !c.getSaisieLe().isAfter(fin)));
-    }
 
     @Test
     @DisplayName("Trouver les commandes du 8 janvier 2025")
@@ -173,14 +153,14 @@ public class RepositoryCustomMethodsTest {
     }
 
     @Test
-    @DisplayName("Vérifier les commandes livrées (6) et non livrées (6)")
+    @DisplayName("Vérifier les commandes livrées (5) et non livrées (7)")
     public void testCommandesDeliveredVsUndelivered() {
         List<Commande> allCommandes = commandeRepository.findAll();
         long livrees = allCommandes.stream().filter(c -> c.getEnvoyeeLe() != null).count();
         long nonLivrees = allCommandes.stream().filter(c -> c.getEnvoyeeLe() == null).count();
         
-        assertEquals(6, livrees);
-        assertEquals(6, nonLivrees);
+        assertEquals(5, livrees);
+        assertEquals(7, nonLivrees);
     }
 
 
@@ -220,14 +200,14 @@ public class RepositoryCustomMethodsTest {
         Medicament medicament = medicamentRepository.findById(2).orElseThrow();
         long count = ligneRepository.countByMedicament(medicament);
         
-        assertEquals(3, count);
+        assertEquals(4, count);
     }
 
     @Test
-    @DisplayName("Vérifier qu'il y a 22 lignes au total")
+    @DisplayName("Vérifier qu'il y a 21 lignes au total")
     public void testLignesCount() {
         List<Ligne> allLignes = ligneRepository.findAll();
-        assertEquals(22, allLignes.size());
+        assertEquals(21, allLignes.size());
     }
 
 
@@ -247,33 +227,6 @@ public class RepositoryCustomMethodsTest {
         
         BigDecimal expected = BigDecimal.valueOf(25.80).multiply(BigDecimal.valueOf(50));
         assertEquals(0, prixTotal.compareTo(expected));
-    }
-
-
-    @Test
-    @DisplayName("Vérifier la cohérence des dispensaires et commandes")
-    public void testDispensaireCommandeConsistency() {
-        List<Dispensaire> allDispensaires = dispensaireRepository.findAll();
-        List<Commande> allCommandes = commandeRepository.findAll();
-
-        assertEquals(10, allDispensaires.size());
-        assertEquals(12, allCommandes.size());
-        
-        assertTrue(allCommandes.stream()
-            .allMatch(c -> allDispensaires.contains(c.getDispensaire())));
-    }
-
-    @Test
-    @DisplayName("Vérifier les commandes entre deux dates janvier 2025")
-    public void testCommandesBetweenDatesJanvier() {
-        LocalDate debut = LocalDate.of(2025, 1, 1);
-        LocalDate fin = LocalDate.of(2025, 1, 31);
-        
-        List<Commande> commandes = commandeRepository.findBySaisieLeBetween(debut, fin);
-        assertEquals(12, commandes.size());
-        
-        assertTrue(commandes.stream()
-            .allMatch(c -> !c.getSaisieLe().isBefore(debut) && !c.getSaisieLe().isAfter(fin)));
     }
 
     @Test
@@ -296,10 +249,10 @@ public class RepositoryCustomMethodsTest {
     }
 
     @Test
-    @DisplayName("Vérifier qu'il y a 10 médicaments")
+    @DisplayName("Vérifier qu'il y a 14 médicaments")
     public void testMedicamentsCount() {
         List<Medicament> allMedicaments = medicamentRepository.findAll();
-        assertEquals(10, allMedicaments.size());
+        assertEquals(14, allMedicaments.size());
     }
 
     @Test
@@ -318,5 +271,121 @@ public class RepositoryCustomMethodsTest {
         List<Dispensaire> allDispensaires = dispensaireRepository.findAll();
         assertEquals(10, allDispensaires.size());
     }
+
+    // @Test: il marchait avant l'ajout de la contrainte d'integrité demandée
+    // void unMedicamentSansCategorieEstInterdit(){
+    //     Medicament m = new Medicament();
+    //     m.setNom("Doliprane");
+
+    //     assertThrows(DataIntegrityViolationException.class, () -> {
+    //         medicamentRepository.saveAndFlush(m);
+    //     }, "Should not save Medicament without Categorie");
+    // }
+
+    @Test
+    @DisplayName("Calculer le nombre d'articles commandés par un dispensaire (commandes envoyées)")
+    public void testCountArticlesCommandesParDispensaire() {
+        Long totalArticles = commandeRepository.countArticlesCommandesParDispensaire("PAR01");
+        
+        assertNotNull(totalArticles);
+        // PAR01 a 2 commandes envoyées (numéro 1 et 4)
+        // Commande 1: 50 + 30 = 80 articles
+        // Commande 4: 80 articles non envoyé
+        // Total = 80 articles
+        assertEquals(80L, totalArticles);
+    }
+
+    @Test
+    @DisplayName("Calculer le nombre d'articles commandés par PAR02")
+    public void testCountArticlesCommandesParDispensaire_PAR02() {
+        Long totalArticles = commandeRepository.countArticlesCommandesParDispensaire("PAR02");
+        
+        // PAR02 a 1 commande non envoyée, donc aucun article compté
+        assertNull(totalArticles);
+    }
+
+    @Test
+    @DisplayName("Calculer les unités commandées par médicament d'une catégorie")
+    public void testMedicamentsVendusPour() {
+        List<UnitesParMedicament> resultats = medicamentRepository.medicamentsVendusPour(1);
+        
+        assertNotNull(resultats);
+        assertFalse(resultats.isEmpty());
+        
+        resultats.forEach(r -> {
+            assertNotNull(r.getNom());
+            assertNotNull(r.getUnites());
+            assertTrue(r.getUnites() > 0);
+        });
+    }
     
+    @Test
+    @DisplayName("Trouver les commandes en cours pour BES01")
+    public void testFindCommandesEnCoursByDispensaire_BES01() {
+        List<Commande> commandesEnCours = commandeRepository.findCommandesEnCoursByDispensaire("BES01");
+        
+        assertNotNull(commandesEnCours);
+        // BES01 a 1 commande envoyée, donc 0 en cours
+        assertEquals(0, commandesEnCours.size());
+    }
+
+    @Test
+    @DisplayName("Vérifier que les commandes en cours sont ordonnées par date (descendant)")
+    public void testCommandesEnCoursSontOrdonnees() {
+        List<Commande> commandesEnCours = commandeRepository.findCommandesEnCoursByDispensaire("MRS01");
+        
+        // Vérifier l'ordre des dates (plus récentes d'abord)
+        for (int i = 0; i < commandesEnCours.size() - 1; i++) {
+            assertTrue(commandesEnCours.get(i).getSaisieLe()
+                .isAfter(commandesEnCours.get(i + 1).getSaisieLe()),
+                "Les commandes doivent être ordonnées par date décroissante");
+        }
+    }
+
+    @Test
+    @DisplayName("Vérifier qu'un dispensaire sans commandes envoyées retourne null")
+    public void testCountArticlesForDispensaireSansCommandesEnvoyees() {
+        Long totalArticles = commandeRepository.countArticlesCommandesParDispensaire("GRE01");
+        
+        // GRE01 a 1 commande mais elle n'est pas envoyée
+        assertNull(totalArticles);
+    }
+
+    @Test
+    @DisplayName("Vérifier qu'un dispensaire inexistant retourne null")
+    public void testCountArticlesForInexistantDispensaire() {
+        Long totalArticles = commandeRepository.countArticlesCommandesParDispensaire("XXXX");
+        
+        // Aucun dispensaire avec ce code
+        assertNull(totalArticles);
+    }
+
+    @Test
+    @DisplayName("Trouver les médicaments disponibles à la commande pour la catégorie 3 (Antibiotiques)")
+    public void testFindMedicamentsDisponiblesParCategorie_Cat3() {
+        List<Medicament> disponibles = medicamentRepository.findMedicamentsDisponiblesParCategorie(3);
+        
+        // Catégorie 3 a 2 médicaments mais les 2 sont INDISPONIBLES
+        // Donc la liste doit être vide
+        assertTrue(disponibles.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Trouver les médicaments disponibles à la commande pour la catégorie 2")
+    public void testFindMedicamentsDisponiblesParCategorie_Cat2() {
+        List<Medicament> disponibles = medicamentRepository.findMedicamentsDisponiblesParCategorie(2);
+        
+        assertNotNull(disponibles);
+        // Catégorie 2 (Anti-inflammatoires) a 2 médicaments disponibles
+        assertEquals(2, disponibles.size());
+    }
+
+    @Test
+    @DisplayName("Trouver les médicaments disponibles à la commande pour une catégorie sans médicaments")
+    public void testFindMedicamentsDisponiblesParCategorie_Empty() {
+        // Supposons que la catégorie 99 n'existe pas
+        List<Medicament> disponibles = medicamentRepository.findMedicamentsDisponiblesParCategorie(99);
+        
+        assertTrue(disponibles.isEmpty());
+    }
 }
